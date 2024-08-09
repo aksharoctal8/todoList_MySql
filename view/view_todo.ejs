@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noty/3.1.4/noty.css">
+    <title>Todo List</title>
+    <style>
+        .container {
+            width: 500px;
+            margin: 50px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        #todo-form {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .add-task {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .add-task:hover {
+            background-color: #45a049;
+        }
+
+        .task-list {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+
+        .task-list input[type="checkbox"] {
+            margin-right: 10px;
+        }
+
+        .task-list .task-text {
+            flex: 1;
+        }
+
+        .task-list .actions {
+            display: flex;
+        }
+
+        .task-list .actions a {
+            background-color: #f44336;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+
+        .task-list .actions a:hover {
+            background-color: #d32f2f;
+        }
+
+        .task-list .actions a:last-child {
+            background-color: #2196F3;
+        }
+
+        .task-list .actions a:last-child:hover {
+            background-color: #1976D2;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>TODO LIST</h1>
+        <a href="/todo" class="add-task btn">Add Task</a>
+        <% for(var td of todoData) { %>
+            <div class="task-list">
+                <div>
+                    <% if(td.status){%>
+                        <a href="/todo/isactive/<%=td.id%>" class="px-1 text-success">Complate</a>
+                        <%}else{%>
+                            <a href="/todo/isdeactive/<%=td.id%>" class=" px-1 text-danger">Panding</a>
+                        <%}%>
+                </div>
+                <div class="task-text">
+                    <%= td.todo_title %>
+                </div>
+                <div class="task-text" id="st"></div>
+                <div class="actions">
+                    <a href="/todo/deleteTodo/<%= td.id %>">🗑️</a>
+                    <a href="/todo/updateTodo/<%= td.id %>">✏️</a>
+                </div>
+            </div>
+        <% } %>
+        
+    </div>
+</body>
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/noty/3.1.4/noty.js"></script>
+
+
+</html>
