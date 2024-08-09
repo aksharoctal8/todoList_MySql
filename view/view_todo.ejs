@@ -86,6 +86,32 @@
         .task-list .actions a:last-child:hover {
             background-color: #1976D2;
         }
+
+        #search-bar {
+            padding: 10px;
+            width: calc(100% - 90px);
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .search-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .search-btn {
+            padding: 10px 20px;
+            margin-left: 10px;
+            border-radius: 5px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+
+        .search-btn:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 
@@ -94,32 +120,56 @@
     <div class="container">
         <h1>TODO LIST</h1>
         <a href="/todo" class="add-task btn">Add Task</a>
-        <% for(var td of todoData) { %>
-            <div class="task-list">
-                <div>
-                    <% if(td.status){%>
-                        <a href="/todo/isactive/<%=td.id%>" class="px-1 text-success">Complate</a>
-                        <%}else{%>
-                            <a href="/todo/isdeactive/<%=td.id%>" class=" px-1 text-danger">Panding</a>
-                        <%}%>
-                </div>
-                <div class="task-text">
-                    <%= td.todo_title %>
-                </div>
-                <div class="task-text" id="st"></div>
-                <div class="actions">
-                    <a href="/todo/deleteTodo/<%= td.id %>">🗑️</a>
-                    <a href="/todo/updateTodo/<%= td.id %>">✏️</a>
-                </div>
+        <form style="width: 100%; margin-block: 20px;" action="/todo/view_todo" method="get">
+            <div class="search-container">
+                <input type="text" id="search-bar" name="search" placeholder="Search tasks..." value="<%= search %>">
+                <input type="submit" class="search-btn" value="Search">
             </div>
-        <% } %>
-        
+        </form>z
+        <%if(todoData !="" ){%>
+            <% for(var td of todoData) { %>
+                <div class="task-list">
+                    <div>
+                        <% if(td.status){%>
+                            <a href="/todo/isactive/<%=td.id%>" class="px-1 text-success">Complate</a>
+                            <%}else{%>
+                                <a href="/todo/isdeactive/<%=td.id%>" class=" px-1 text-danger">Panding</a>
+                                <%}%>
+                    </div>
+                    <div class="task-text">
+                        <%= td.todo_title %>
+                    </div>
+                    <div class="task-text" id="st"></div>
+                    <div class="actions">
+                        <a href="/todo/deleteTodo/<%= td.id %>">🗑️</a>
+                        <a href="/todo/updateTodo/<%= td.id %>">✏️</a>
+                    </div>
+                </div>
+                <% } %>
+                    <%}else {%>
+                        <div class="task-text">Data Not Found..!</div>
+                        <%}%>
+                        <div class="pagination" style="display: flex; justify-content: center; margin-top: 20px;">
+                            <% var prepage = parseInt(curentpage) - 1 %>
+                            <% if (prepage >= 0) { %>
+                                <a href="?page=<%= prepage %>&search=<%= search %>">Back</a>
+                            <% } %>
+                        
+                            <a href="?page=<%=curentpage%>&search=<%=search%>" style="margin: 0 10px;"><%=parseInt(curentpage)+1%></a>
+                        
+                            <% var nextpage = parseInt(curentpage) + 1 %>
+                            <% if (totalDocument > nextpage) { %>
+                                <a href="?page=<%= nextpage %>&search=<%= search %>">Next</a>
+                            <% } %>
+                        </div>
+                        
     </div>
 </body>
 <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/noty/3.1.4/noty.js"></script>
+
 
 
 </html>

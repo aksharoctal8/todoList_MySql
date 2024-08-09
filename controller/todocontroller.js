@@ -1,4 +1,4 @@
-const con = require("../config/mysql")
+const todo = require("../model/todoModel")
 const flash = require('../config/CustmFlash')
 module.exports.addTodo = async (req, res) => {
     try {
@@ -12,25 +12,17 @@ module.exports.addTodo = async (req, res) => {
 // insert task 
 module.exports.insertTodo = async (req, res) => {
     try {
-        const todoTitle = req.body.todo_title;
-        if (!todoTitle || todoTitle.trim() === '') {
-            req.flash('error', 'Todo title is required');
+
+        req.body.status = false
+        req.body.date = new Date().toLocaleString();
+        let createQuery = await todo.create(req.body);
+        if (createQuery) {
+            req.flash("success", "Task Inserted")
+            return res.redirect('back');
+        } else {
+            req.flash("error", "Task is required")
             return res.redirect('back');
         }
-        const dateTime = new Date()
-        const insertQuery = 'INSERT INTO todo (todo_title, date) VALUES (?, ?)';
-
-        let toDo = con.query(insertQuery, [todoTitle, dateTime], (error, results) => {
-            if (error) {
-                // req.flash('error', 'Todo is required');
-                console.log(error);
-            } else {
-                // console.log("inserted");
-                req.flash('success', 'Todo inserted');
-                return res.redirect('back')
-            }
-
-        });
     } catch (error) {
         console.log(error);
     }
@@ -38,39 +30,67 @@ module.exports.insertTodo = async (req, res) => {
 // view task 
 module.exports.viewTodo = async (req, res) => {
     try {
-        const viewQuery = 'SELECT * FROM todo ';
-        con.query(viewQuery, (error, results) => {
-            if (error) {
-                console.log(error);
-            } else {
-                // console.log(results);    
-
-                return res.render('view_todo', {
-                    todoData: results
-                })
-            }
-
-        });
+        let search = '';
+        if(req.query.search){
+            search= req.query.search
+        }
+        console.log(req.query.search);
+        if(req.query.page){
+            page = req.query.page;
+        }
+        else{
+            page = 0
+        }
+        var perpage =4;
+    
+        let adminrecord = await todo.find({
+            $or :[
+                {"todo_title":{$regex:".*"+search+".*",   }}
+            ]
+        })
+        .limit(perpage)
+        .skip(perpage*page);
+    
+        let AdminePage = await todo.find({
+            $or :[
+                {"todo_title":{$regex:".*"+search+".*", $options:"i"}}
+            ]
+        }).countDocuments();
+        // console.log(adminrecord);
+        if(adminrecord){
+            return res.render("view_todo",{
+                todoData : adminrecord,
+            
+                search: search,
+                totalDocument : Math.ceil(AdminePage/perpage),
+                curentpage :page
+            })
+        }
+        else{
+            console.log('somthing went worng');
+            return res.render("view_admin")
+        }
     } catch (error) {
         console.log(error);
     }
 }
+
+
+
 // delete task 
 module.exports.deleteTodo = async (req, res) => {
     try {
         // console.log(req.params.id);
         // console.log(req.body);
         const { id } = req.params;
-        const deleteQuery = 'DELETE FROM todo WHERE id = ?';
-        con.query(deleteQuery, [id], (error, results) => {
-            if (error) {
-                console.log(error);
-
-            } else {
-                console.log("data delete");
-                return res.redirect('back');
-            }
-        })
+        let deleteQuery = await todo.findByIdAndDelete(id)
+        if (deleteQuery) {
+            console.log("Task Delete..");
+            return res.redirect('back')
+        } else {
+            console.log("Task Can't Delete..!");
+            return res.redirect('back')
+        }
     } catch (error) {
         console.log(err);
     }
@@ -80,43 +100,32 @@ module.exports.updateTodo = async (req, res) => {
     try {
         const { id } = req.params;
         // console.log('ID:', id); 
-        const updateQuery = 'SELECT * FROM todo WHERE id = ?';
-        con.query(updateQuery, [id], (error, results) => {
-            if (error) {
-                console.log('Database error:', error); 
-            } else {
-                console.log('Results:', results); 
-                return res.render('update_task', {
-                    up: results[0] 
-                });
-            }})
+        const updateQuery = await todo.findById(id)
+        if (updateQuery) {
+            return res.render('update_task', {
+                up: updateQuery
+            })
+        } else {
+            console.log("Task Not Find");
         }
+    }
     catch (error) {
         console.log(error);
     }
 }
-module.exports.editTodo = async(req,res)=>{
+module.exports.editTodo = async (req, res) => {
     try {
         // console.log(req.body);
         // console.log(req.body.EditId);
-        const todoTitle = req.body.todo_title;
-        if (!todoTitle || todoTitle.trim() === '') {
-            req.flash('error', 'Todo title is required');
+        const { EditId } = req.body;
+        let editQuery = await todo.findByIdAndUpdate(EditId, req.body);
+        if (editQuery) {
+            req.flash("success", "Task Updated")
+            return res.redirect('/todo/view_todo');
+        } else {
+            req.flash("error", "Task Updated")
             return res.redirect('back');
         }
-        let EditId = req.body.EditId;
-        const updateData = { todo_title: todoTitle };
-        const editQuery = 'UPDATE todo SET ? WHERE id = ?'
-        con.query(editQuery,[updateData,EditId], (error,results)=>{
-            if (error) {
-                console.log(error);
-                return res.redirect('back')
-            } else {
-                // req.flash('success', 'Todo updated');
-                console.log("todo updated..");                
-                return res.redirect('/todo/view_todo')
-            }
-        })
     } catch (error) {
         console.log(error);
     }
@@ -124,16 +133,12 @@ module.exports.editTodo = async(req,res)=>{
 module.exports.isactive = async (req, res) => {
     try {
         const { id } = req.params;
-        const statusQuery = 'UPDATE todo SET status = ? WHERE id = ?';
-        con.query(statusQuery, [false, id], (error, results) => {
-            if (error) {
-                console.log(error);
-                return res.redirect('back');
-            } else {
-                console.log("Status changed successfully");
-                return res.redirect('back');
-            }
-        });
+        const statusQuery = await todo.findByIdAndUpdate(id, { status: false });
+        if (statusQuery) {
+            return res.redirect('back')
+        } else {
+            console.log("Task statuse can't change");
+        }
     } catch (error) {
         console.log(error);
     }
@@ -141,16 +146,12 @@ module.exports.isactive = async (req, res) => {
 module.exports.isdeactive = async (req, res) => {
     try {
         const { id } = req.params;
-        const statusQuery = 'UPDATE todo SET status = ? WHERE id = ?';
-        con.query(statusQuery, [true, id], (error, results) => {
-            if (error) {
-                console.log(error);
-                return res.redirect('back');
-            } else {
-                console.log("Status changed successfully");
-                return res.redirect('back');
-            }
-        });
+        const statusQuery = await todo.findByIdAndUpdate(id, { status: true });
+        if (statusQuery) {
+            return res.redirect('back')
+        } else {
+            console.log("Task statuse can't change");
+        }
     } catch (error) {
         console.log(error);
     }

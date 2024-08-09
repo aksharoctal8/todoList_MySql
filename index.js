@@ -2,8 +2,13 @@ const express = require('express');
 const port = 8005;
 const app = express();
 const path = require('path');
-const mysql = require('mysql');
-const db = require("./config/mysql");
+const mongoose = require('mongoose');
+mongoose.connect(("mongodb+srv://aksharkoctal8:okFhHM5cX88fOeao@akshar.fxsbbxv.mongodb.net/todo_list?retryWrites=true&w=majority&appName=AKSHAR"), {
+  useUnifiedTopology: true,
+  useNewUrlParser: true
+})
+  .then(() => console.log('Database Connected'))
+  .catch((err) => console.log(err));
 const session = require('express-session');
 const flash = require('connect-flash');
 const customFlash = require('./config/CustmFlash');
@@ -16,8 +21,8 @@ app.set('views', path.join(__dirname, 'view'));
 app.set('view engine', 'ejs');
 
 
-
 app.use(express.urlencoded());
+
 app.use(session({
     name : "Akshar",
     secret:"ak",
